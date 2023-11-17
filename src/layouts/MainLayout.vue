@@ -3,10 +3,10 @@
     <q-header elevated>
       <q-toolbar>
         <q-toolbar-title>
-          Quasar App
+          Invest App
         </q-toolbar-title>
 
-        <div>Quasar</div>
+        <div>M. Sizyakin</div>
       </q-toolbar>
     </q-header>
 
