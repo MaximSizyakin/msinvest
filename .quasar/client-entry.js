@@ -45,7 +45,7 @@ import quasarUserOptions from './quasar-user-options.js'
 
 
 
-const publicPath = `/`
+const publicPath = `/msinvest/`
 
 async function start ({
   app,
