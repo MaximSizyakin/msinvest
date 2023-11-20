@@ -10,6 +10,9 @@
     :rows-per-page-options="[10, 20, 50, 100]"
     :pagination-label="(s, e, t) => (s + '-' + e + ' из ' + t)"
     no-data-label="Нет данных. Попробуйте позже."
+    :loading="loading"
+    loading-label="Загрузка данных."
+    separator="cell"
   >
 
     <template v-slot:body="props">
@@ -32,16 +35,37 @@
       </q-tr>
     </template>
 
+    <template v-slot:bottom-row="props">
+      <q-tr style="text-align: center">
+        <q-td></q-td>
+        <q-td key="ticker" :props="props">2</q-td>
+        <q-td></q-td>
+        <q-td></q-td>
+        <q-td>{{ totalWeight }}</q-td>
+        <q-td>6</q-td>
+        <q-td>7</q-td>
+        <q-td>8</q-td>
+        <q-td>9</q-td>
+        <q-td>10</q-td>
+        <q-td>11</q-td>
+      </q-tr>
+    </template>
+
   </q-table>
 </template>
 
 <script setup>
 import columns from "components/IMOEXTable/columns";
+import {computed, onMounted} from "vue";
 
-defineProps({
+const props = defineProps({
   rows: {
     type: Array,
     required: true
+  },
+  loading: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -49,6 +73,22 @@ const pagination = {
   sortBy: 'ticker',
   descending: false,
   page: 1,
-  rowsPerPage: 50
+  rowsPerPage: 10
 };
+
+const totalWeight = computed(() => {
+  let data = null;
+  props.rows.forEach(i => data += i.weight);
+  return Math.round(data);
+});
+
+onMounted(() => {
+});
+
 </script>
+
+<style scoped>
+tr:hover > td {
+  background: rgba(0, 0, 0, .03);
+}
+</style>

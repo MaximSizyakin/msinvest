@@ -1,36 +1,24 @@
 <template>
   <div class="q-pa-md">
 
-    <Table :rows="rows"/>
+    <Table
+      :rows="rows"
+      :loading="loading"
+    />
 
   </div>
 </template>
 
 <script setup>
 import axios from "axios";
-import {computed, onMounted, reactive} from "vue";
+import {ref, onMounted, reactive} from "vue";
 // import {Client, Databases, ID, Query} from 'appwrite';
 import Table from '../components/IMOEXTable/table.vue';
 
+const loading = ref(false);
+
+
 const imoexIndex = reactive([]);
-// const sharesData = reactive([]);
-const rows = reactive([]);
-
-// const rows = computed(() => {
-//   return imoexIndex.map((el, i, arr) => {
-//     return {
-//       ...el,
-//       coef: '1.0',
-//       value: '264.50',
-//       sharesToBuy: '230',
-//       priceValue: '60 835.00',
-//       sharesBought: '0',
-//       sharesBoughtValue: '0',
-//       done: '0%',
-//     };
-//   });
-// });
-
 const getImoexIndex = async () => {
   try {
     await axios.get('https://iss.moex.com/iss/statistics/engines/stock/markets/index/analytics/IMOEX.json?limit=100')
@@ -39,7 +27,6 @@ const getImoexIndex = async () => {
         data.forEach((el, idx) => imoexIndex.push({
           index: idx,
           ticker: el[2],
-          name: el[3],
           weight: el[5]
         }));
       });
@@ -48,59 +35,45 @@ const getImoexIndex = async () => {
   }
 };
 
-// const getSharesData = async (ticker) => {
-//   try {
-//     await axios.get('https://iss.moex.com/iss/engines/stock/markets/shares/securities/' + ticker + '.json?marketprice_board=1')
-//       .then(response => {
-//         const data = response.data.marketdata.data[0];
-//         sharesData.push({
-//           'ticker': data[0],
-//           'value': data[12]
-//         });
-//       });
-//
-//   } catch (error) {
-//     console.log(error);
-//   }
-// };
-
-const getShareValue = async (ticker) => {
+const sharesData = reactive([]);
+const getSharesValue = async () => {
   try {
-    return await axios.get('https://iss.moex.com/iss/engines/stock/markets/shares/securities/' + ticker + '.json?marketprice_board=1')
-      .then(response => response.data.marketdata.data[0][12]);
+    await axios.get('https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json')
+      .then(response => {
+        const data = response.data.securities.data;
+        data.forEach((el, idx) => sharesData.push(
+          {
+            ticker: el[0],
+            name: el[9],
+            value: el[3]
+          }
+        ));
+      });
   } catch (error) {
     console.log(error);
   }
 };
 
-// const writeSharesData = (ticker) => {
-//   sharesData.push(ticker);
-// };
-
-// const client = new Client()
-//   .setEndpoint('https://cloud.appwrite.io/v1')
-//   .setProject('6536c8646916edc1b8eb');
-//
-// const databases = new Databases(client);
+const rows = reactive([]);
+const uploadRowsData = () => {
+  return imoexIndex.map((el, idx, arr) => {
+    const share = sharesData.find(item => item.ticker === el.ticker);
+    rows.push({
+      index: idx,
+      ticker: el.ticker,
+      weight: el.weight,
+      name: share.name,
+      value: share.value
+    });
+  });
+};
 
 onMounted(async () => {
+    loading.value = true;
     await getImoexIndex();
-
-    imoexIndex.map(async (el, i, arr) => {
-      const value = await getShareValue(el.ticker);
-      console.log(value);
-      rows.push({
-        ...el,
-        coef: '1.0',
-        value: value,
-        // sharesToBuy: '230',
-        // priceValue: '60 835.00',
-        // sharesBought: '0',
-        // sharesBoughtValue: '0',
-        // done: '0%',
-      });
-    });
-
+    await getSharesValue();
+    uploadRowsData();
+    loading.value = false;
   }
 );
 </script>
